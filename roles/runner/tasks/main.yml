@@ -1,0 +1,43 @@
+---
+- name: "Create service group" 
+  group:
+    name: "{{ service_automation_group | default(service_automation_user) }}"
+  when: install_with_systemd  == "true" 
+
+- name: "Create service user"
+  user: 
+    name: "{{ service_automation_user }}"
+  when: install_with_systemd  == "true" 
+
+- name: "Create installation folder"
+  file:
+    state: directory
+    path: "{{ service_install_folder }}"
+    recurse: true
+    mode: '0755'    
+    owner: "{{ service_automation_user }}"
+    group: "{{ service_automation_group | default(service_automation_user) }}"
+
+
+- name: Copy application binary file to server
+  copy:
+    src: "{{ service_binary_location }}"
+    dest: "{{ service_install_folder }}/{{ service_name }}"
+    owner: "{{ service_automation_user }}"
+    group: "{{ service_automation_group | default(service_automation_user) }}"
+    mode: '0755'
+
+- name: Create application config
+  template:
+    src: templates/config.tpl
+    dest: "{{ service_install_folder }}/conf.json"
+
+
+- name: Copy systemd service file to server
+  template:
+    src: "templates/{{ service_name }}.service.tpl"
+    dest: /etc/systemd/system/{{ service_name }}.service
+    owner: root
+    group: root
+  notify:
+    - Start service

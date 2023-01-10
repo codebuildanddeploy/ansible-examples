@@ -1,0 +1,67 @@
+---
+# Install golang with golang user (Linux)
+
+- name: "Create golang group" 
+  group:
+    name: "{{ golang_automation_group | default(golang_automation_user) }}"
+  when: install_golang == "true" 
+
+- name: "Create golang user"
+  user: 
+    name: "{{ golang_automation_user }}"
+  when: install_golang == "true"
+
+- name: "Create installation folder"
+  file:
+    state: directory
+    path: "{{ golang_install_folder }}"
+    recurse: true
+    mode: '0755'    
+    owner: "{{ golang_automation_user }}"
+    group: "{{ golang_automation_group | default(golang_automation_user) }}"
+  when: install_golang == "true"
+
+- name: "Download golang"
+  get_url:
+    url: "https://go.dev/dl/go{{golang_version}}.linux-amd64.tar.gz"
+    dest: "/tmp/"
+    owner: "{{ golang_automation_user }}"
+    group: "{{ golang_automation_group | default(golang_automation_user) }}"
+  when: install_golang == "true"
+
+- name: "Unpack golang"
+  unarchive:
+    src: "/tmp/go{{golang_version}}.linux-amd64.tar.gz"
+    dest: "{{ golang_install_folder }}/"
+    owner: "{{ golang_automation_user }}"
+    group: "{{ golang_automation_group | default(golang_automation_user) }}"
+    mode: '0755'    
+  when: install_golang == "true"
+
+# Prepare application code
+
+- name: "FMT go application code with custom module"
+  go_module:
+    go_command: "fmt"
+    app_path: "{{ application_install_folder }}/"
+    go_bin_path: "/opt/golang/go/bin"
+  register: fmt_result
+  become: false
+
+# Build application code
+
+- name: "Build go application code with custom module"
+  go_module:
+    go_command: "build"
+    app_path: "{{ application_install_folder }}/"
+    go_bin_path: "/opt/golang/go/bin"
+  when: build_go_application == "true"
+  register: build_result  
+  become: false
+
+- name: "Fetch built binary"
+  fetch:
+    src: "{{ application_install_folder }}/go_application"
+    dest: "/tmp/prefix-{{ inventory_hostname }}/go-application"
+    flat: yes  
+  when: build_go_application == "true"

@@ -1,0 +1,11 @@
+---
+install_with_systemd: "true"
+
+
+service_automation_user: golang
+#service_automation_group: golang # If not set, the same as service_automation_user
+
+
+service_binary_location: "/tmp/prefix-{{ inventory_hostname }}/go-application"
+service_install_folder: "/opt/myservice"
+service_name: "myservice"

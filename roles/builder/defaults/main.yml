@@ -1,0 +1,12 @@
+---
+# defaults file for builder
+install_golang: "true"
+prepare_application: "true"
+build_go_application: "true"
+
+golang_install_folder: /opt/golang
+golang_version: 1.19.4
+golang_automation_user: golang
+#golang_automation_group: golang # If not set, the same as golang_automation_user
+
+application_install_folder: "go_application"

@@ -1,0 +1,3 @@
+{
+"port": {{ service_port }}
+}
